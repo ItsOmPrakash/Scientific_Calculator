@@ -1,5 +1,4 @@
 import tkinter as tk
-import math
 
 from theme.dark_theme import *
 from logic.calculator_logic import (
@@ -10,7 +9,6 @@ from logic.calculator_logic import (
     sqrt,
     log
 )
-
 from ui.bmi_ui import BMIUI
 from ui.converter_ui import ConverterUI
 
@@ -19,14 +17,14 @@ class CalculatorUI:
     def __init__(self, root):
         self.window = tk.Toplevel(root)
         self.window.title("Scientific Calculator")
-        self.window.geometry("380x550")
+        self.window.geometry("380x560")
         self.window.configure(bg=BG_COLOR)
         self.window.resizable(False, False)
 
         self.expression = tk.StringVar()
 
         # ================= Display =================
-        entry = tk.Entry(
+        self.entry = tk.Entry(
             self.window,
             textvariable=self.expression,
             font=("Arial", 20),
@@ -36,9 +34,9 @@ class CalculatorUI:
             insertbackground=TEXT_COLOR,
             relief="flat"
         )
-        entry.pack(fill="x", padx=10, pady=15)
+        self.entry.pack(fill="x", padx=12, pady=15)
 
-        # ================= Buttons Layout =================
+        # ================= Buttons =================
         buttons = [
             ('sin', 'cos', 'tan', '√'),
             ('7', '8', '9', '/'),
@@ -50,7 +48,7 @@ class CalculatorUI:
 
         for row in buttons:
             frame = tk.Frame(self.window, bg=BG_COLOR)
-            frame.pack(expand=True, fill="both", padx=5)
+            frame.pack(expand=True, fill="both", padx=6)
             for btn in row:
                 self.create_button(frame, btn)
 
@@ -64,10 +62,13 @@ class CalculatorUI:
             activebackground=BTN_COLOR,
             relief="flat",
             command=self.open_more_options
-        ).pack(fill="x", padx=10, pady=10)
+        ).pack(fill="x", padx=12, pady=10)
+
+        # ================= Keyboard Support =================
+        self.bind_keys()
 
     # =====================================================
-    # Button Creation Logic
+    # Button creation logic
     # =====================================================
     def create_button(self, frame, value):
 
@@ -75,9 +76,7 @@ class CalculatorUI:
             action = lambda: self.expression.set("")
 
         elif value == '=':
-            action = lambda: self.expression.set(
-                evaluate_expression(self.expression.get())
-            )
+            action = self.calculate
 
         elif value == 'sin':
             action = lambda: self.apply_function(sin)
@@ -92,9 +91,7 @@ class CalculatorUI:
             action = lambda: self.apply_function(sqrt)
 
         elif value == 'π':
-            action = lambda: self.expression.set(
-                self.expression.get() + "π"
-            )
+            action = lambda: self.expression.set(self.expression.get() + "π")
 
         else:
             action = lambda v=value: self.expression.set(
@@ -113,8 +110,13 @@ class CalculatorUI:
         ).pack(side="left", expand=True, fill="both", padx=3, pady=3)
 
     # =====================================================
-    # Apply Scientific Function
+    # Calculation helpers
     # =====================================================
+    def calculate(self):
+        self.expression.set(
+            evaluate_expression(self.expression.get())
+        )
+
     def apply_function(self, func):
         try:
             value = float(self.expression.get())
@@ -123,7 +125,23 @@ class CalculatorUI:
             self.expression.set("Error")
 
     # =====================================================
-    # More Options Window
+    # Keyboard handling
+    # =====================================================
+    def bind_keys(self):
+        self.window.bind("<Key>", self.key_input)
+        self.window.bind("<Return>", lambda e: self.calculate())
+        self.window.bind("<BackSpace>", self.backspace)
+        self.window.bind("<Escape>", lambda e: self.expression.set(""))
+
+    def key_input(self, event):
+        if event.char.isdigit() or event.char in "+-*/.":
+            self.expression.set(self.expression.get() + event.char)
+
+    def backspace(self, event):
+        self.expression.set(self.expression.get()[:-1])
+
+    # =====================================================
+    # More Options window
     # =====================================================
     def open_more_options(self):
         win = tk.Toplevel(self.window)
