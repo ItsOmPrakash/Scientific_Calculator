@@ -1,11 +1,9 @@
 import tkinter as tk
-from ui.home import HomeUI
+from ui.calculator_ui import CalculatorUI
 
 root = tk.Tk()
-root.title("Scientific Calculator")
-root.geometry("500x500")
-root.resizable(False, False)
+root.withdraw()  # hide root window
 
-HomeUI(root)
+CalculatorUI(root)
 
 root.mainloop()
